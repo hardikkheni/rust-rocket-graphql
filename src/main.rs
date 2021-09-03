@@ -1,48 +1,18 @@
 #[macro_use]
 extern crate rocket;
 #[macro_use]
+extern crate diesel;
 extern crate juniper;
 
-use juniper::{Context, EmptyMutation, EmptySubscription, RootNode};
+mod db;
+mod gql;
+
+use gql::{
+    context::GraphQLContext,
+    schema::{Query, Schema},
+};
+use juniper::{EmptyMutation, EmptySubscription};
 use rocket::{response::content, Rocket, State};
-
-#[derive(Clone)]
-struct Episode {
-    id: i32,
-}
-
-#[graphql_object]
-impl Episode {
-    fn id(&self) -> i32 {
-        self.id
-    }
-}
-
-struct Query;
-
-#[derive(Default, Clone)]
-struct Database {
-    episodes: Vec<Episode>,
-}
-
-impl Context for Database {}
-
-impl Database {
-    fn new() -> Self {
-        Database {
-            episodes: vec![Episode { id: 1 }, Episode { id: 2 }],
-        }
-    }
-}
-
-#[graphql_object(context=Database)]
-impl Query {
-    fn episodes(#[graphql(content)] database: &Database) -> Vec<Episode> {
-        database.episodes.to_vec()
-    }
-}
-
-type Schema = RootNode<'static, Query, EmptyMutation<Database>, EmptySubscription<Database>>;
 
 #[get("/")]
 fn graphiql() -> content::Html<String> {
@@ -51,7 +21,7 @@ fn graphiql() -> content::Html<String> {
 
 #[post("/graphql", data = "<request>")]
 fn post_graphql_handler(
-    context: &State<Database>,
+    context: &State<GraphQLContext>,
     request: juniper_rocket::GraphQLRequest,
     schema: &State<Schema>,
 ) -> juniper_rocket::GraphQLResponse {
@@ -60,12 +30,13 @@ fn post_graphql_handler(
 
 #[launch]
 fn rocket() -> _ {
+    let pool = db::pool::get_pool();
     Rocket::build()
-        .manage(Database::new())
+        .manage(GraphQLContext { pool })
         .manage(Schema::new(
             Query,
-            EmptyMutation::<Database>::new(),
-            EmptySubscription::<Database>::new(),
+            EmptyMutation::<GraphQLContext>::new(),
+            EmptySubscription::<GraphQLContext>::new(),
         ))
         .mount("/", routes![graphiql, post_graphql_handler])
 }
