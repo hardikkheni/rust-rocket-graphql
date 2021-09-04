@@ -9,9 +9,9 @@ mod gql;
 
 use gql::{
     context::GraphQLContext,
-    schema::{Query, Schema},
+    schema::{Mutation, Query, Schema},
 };
-use juniper::{EmptyMutation, EmptySubscription};
+use juniper::EmptySubscription;
 use rocket::{response::content, Rocket, State};
 
 #[get("/")]
@@ -35,7 +35,7 @@ fn rocket() -> _ {
         .manage(GraphQLContext { pool })
         .manage(Schema::new(
             Query,
-            EmptyMutation::<GraphQLContext>::new(),
+            Mutation,
             EmptySubscription::<GraphQLContext>::new(),
         ))
         .mount("/", routes![graphiql, post_graphql_handler])
