@@ -1,6 +1,7 @@
 # GraphQL Server
 
 - Rust nightly
+- Rocket (Web Server)
 - Diesel (Postgresql ORM)
 - Juniper (GraphQL)
 
