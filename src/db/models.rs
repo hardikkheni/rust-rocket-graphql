@@ -20,24 +20,42 @@ impl Product {
     fn id(&self) -> i32 {
         self.id
     }
+
     #[graphql(name = "product_id")]
     pub fn product_id(&self) -> &str {
         self.product_id.as_str()
     }
+
     #[graphql(name = "garment_style")]
     pub fn garment_style(&self) -> &str {
         self.garment_style.as_str()
     }
+
     #[graphql(name = "garment_color")]
     pub fn garment_color(&self) -> &str {
         self.garment_style.as_str()
     }
+
     #[graphql(name = "garment_size")]
     pub fn garment_size(&self) -> &str {
         self.garment_size.as_str()
     }
+
     pub fn quantity(&self) -> i32 {
         self.quantity
+    }
+
+    #[graphql(name = "created_at")]
+    pub fn created_at(&self) -> String {
+        self.created_at.to_string()
+    }
+
+    #[graphql(name = "updated_at")]
+    pub fn updated_at(&self) -> Option<String> {
+        match self.updated_at {
+            Some(updated_at) => Some(updated_at.to_string()),
+            None => None,
+        }
     }
 }
 
@@ -46,10 +64,13 @@ impl Product {
 pub struct InsertProductInput {
     #[graphql(name = "product_id")]
     pub product_id: String,
+
     #[graphql(name = "garment_style")]
     pub garment_style: String,
+
     #[graphql(name = "garment_color")]
     pub garment_color: String,
+
     #[graphql(name = "garment_size")]
     pub garment_size: String,
 }
